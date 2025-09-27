@@ -75,6 +75,9 @@ export const SessionEntity = new Entity(
       systemPrompt: {
         type: 'string',
       },
+      mcpConfig: {
+        type: 'string',
+      },
     },
     indexes: {
       // Primary key for the table

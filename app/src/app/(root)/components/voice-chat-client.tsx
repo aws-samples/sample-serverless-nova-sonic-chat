@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import ConversationList from '@/components/conversation-list';
 import Messages from '@/components/messages';
 import TimerDisplay from './timer-display';
+import { EmptyMcpConfig, mcpConfigSchema } from '@/common/schemas';
 
 interface Conversation {
   id: string;
@@ -51,6 +52,9 @@ export default function VoiceChatClient({ initialConversations, userId }: VoiceC
   const [systemPrompt, setSystemPrompt] = useState(defaultSystemPrompt);
   const [inputSystemPrompt, setInputSystemPrompt] = useState(systemPrompt);
   const [voiceId, setVoiceId] = useState('tiffany');
+  const [mcpConfig, setMcpConfig] = useState(EmptyMcpConfig);
+  const [inputMcpConfig, setInputMcpConfig] = useState(JSON.stringify(EmptyMcpConfig, null, 2));
+  const [mcpConfigError, setMcpConfigError] = useState<string | null>(null);
   const [completionModalOpen, setCompletionModalOpen] = useState(false);
   const [endReason, setEndReason] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -83,6 +87,20 @@ export default function VoiceChatClient({ initialConversations, userId }: VoiceC
     if (savedSystemPrompt) {
       setSystemPrompt(savedSystemPrompt);
       setInputSystemPrompt(savedSystemPrompt);
+    }
+
+    const savedMcpConfig = localStorage.getItem('mcpConfig');
+    if (savedMcpConfig) {
+      try {
+        const parsed = JSON.parse(savedMcpConfig);
+        const validationResult = mcpConfigSchema.safeParse(parsed);
+        if (validationResult.success) {
+          setMcpConfig(parsed);
+          setInputMcpConfig(savedMcpConfig);
+        }
+      } catch (error) {
+        console.error('Error loading saved MCP config:', error);
+      }
     }
   }, []);
 
@@ -117,11 +135,68 @@ export default function VoiceChatClient({ initialConversations, userId }: VoiceC
   }, [isActive, sessionStartTime]);
 
   const handleStartSession = () => {
-    startSession(voiceId, systemPrompt);
+    startSession(voiceId, systemPrompt, mcpConfig);
   };
 
   const handleCloseSession = () => {
     closeSession();
+  };
+
+  const validateAndSetMcpConfig = (jsonString: string) => {
+    // Treat empty string as EmptyMcpConfig
+    if (jsonString.trim() === '') {
+      setMcpConfigError(null);
+      return true;
+    }
+
+    try {
+      const parsed = JSON.parse(jsonString);
+      const validationResult = mcpConfigSchema.safeParse(parsed);
+
+      if (validationResult.success) {
+        setMcpConfigError(null);
+        return true;
+      } else {
+        const errorMessage = validationResult.error.issues
+          .map((err: any) => `${err.path.join('.')}: ${err.message}`)
+          .join(', ');
+        setMcpConfigError(errorMessage);
+        return false;
+      }
+    } catch (error) {
+      setMcpConfigError('Invalid JSON format');
+      return false;
+    }
+  };
+
+  const handleMcpConfigChange = (value: string) => {
+    setInputMcpConfig(value);
+    validateAndSetMcpConfig(value);
+  };
+
+  const handleUpdateMcpConfig = () => {
+    if (validateAndSetMcpConfig(inputMcpConfig)) {
+      try {
+        // Handle empty string as EmptyMcpConfig
+        const configToSet = inputMcpConfig.trim() === '' ? EmptyMcpConfig : JSON.parse(inputMcpConfig);
+        setMcpConfig(configToSet);
+        localStorage.setItem('mcpConfig', inputMcpConfig);
+      } catch (error) {
+        // This should not happen as validation passed
+        console.error('Unexpected error updating MCP config:', error);
+      }
+    }
+  };
+
+  const handleFormatMcpConfig = () => {
+    try {
+      const parsed = JSON.parse(inputMcpConfig);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setInputMcpConfig(formatted);
+      setMcpConfigError(null);
+    } catch (error) {
+      setMcpConfigError('Invalid JSON format');
+    }
   };
 
   return (
@@ -249,6 +324,36 @@ export default function VoiceChatClient({ initialConversations, userId }: VoiceC
                     <SelectItem value="carlos">Carlos (Spanish, Male)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">MCP Config:</label>
+                <div className="space-y-2">
+                  <Textarea
+                    value={inputMcpConfig}
+                    onChange={(e) => handleMcpConfigChange(e.target.value)}
+                    placeholder="Enter MCP configuration as JSON..."
+                    className="min-h-32 resize-y font-mono text-sm"
+                  />
+                  {mcpConfigError && (
+                    <div className="text-red-500 text-xs bg-red-50 p-2 rounded border">{mcpConfigError}</div>
+                  )}
+                  <div className="flex space-x-2">
+                    <Button onClick={handleFormatMcpConfig} variant="outline" size="sm">
+                      Format
+                    </Button>
+                    <Button
+                      onClick={handleUpdateMcpConfig}
+                      disabled={
+                        !!mcpConfigError ||
+                        inputMcpConfig === JSON.stringify(mcpConfig, null, 2) ||
+                        (mcpConfig === EmptyMcpConfig && inputMcpConfig.trim() === '')
+                      }
+                      size="sm"
+                    >
+                      Update
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

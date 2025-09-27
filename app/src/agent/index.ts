@@ -6,8 +6,16 @@ import { SessionRepository } from '@/common/sessionRepository';
 import { dispatchEvent, processResponseStream, initializeSubscription } from './events';
 import { voiceConfigurations } from './voices';
 import { getWeatherTool } from './tools/weather';
+import { getMcpToolSpecs } from '@/agent/tools/mcp';
+import { McpConfig } from '@/common/schemas';
 
-export const main = async (sessionId: string, userId: string, systemPrompt: string, voiceId: string) => {
+export const main = async (
+  sessionId: string,
+  userId: string,
+  systemPrompt: string,
+  voiceId: string,
+  mcpConfig: McpConfig
+) => {
   let channel: EventsChannel | undefined = undefined;
   const context: { stream?: NovaStream } = {};
   const messageRepository = new MessageRepository();
@@ -29,25 +37,26 @@ ${voiceConfig.additionalPrompt}
 
     console.log(`session ${sessionId} initialized`);
 
+    const tools = [
+      //
+      getWeatherTool,
+    ];
+    console.log(`Initializing mcp tools... ${Object.keys(mcpConfig.mcpServers).join(',')}`);
+    const mcpTools = await getMcpToolSpecs(sessionId, mcpConfig);
+
     const channelPath = `/${process.env.EVENT_BUS_NAMESPACE}/user/${userId}/${sessionId}`;
     channel = await initializeSubscription(channelPath, context);
-
     console.log('Subscribed to the channel');
 
     // Without this sleep, the error below is sometimes thrown
     // "Subscription has not been initialized"
     await new Promise((s) => setTimeout(s, 1000));
 
-    const tools = [
-      //
-      getWeatherTool,
-    ];
-
     // Start response stream
     while (true) {
       console.log('starting/resuming a session');
       const chatHistory = await messageRepository.getMessages(sessionId);
-      const stream = new NovaStream(voiceId, system, tools);
+      const stream = new NovaStream(sessionId, voiceId, system, tools, mcpTools);
       context.stream = stream;
       await stream.open(chatHistory);
       const res = await processResponseStream(channel, stream, sessionId, startedAt);

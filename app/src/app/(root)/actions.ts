@@ -4,10 +4,12 @@ import { z } from 'zod';
 import { SessionRepository } from '@/common/sessionRepository';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { authActionClient } from '@/lib/safe-action';
+import { mcpConfigSchema } from '@/common/schemas';
 
 const startNovaSonicSessionSchema = z.object({
   systemPrompt: z.string(),
   voiceId: z.string(),
+  mcpConfig: mcpConfigSchema,
 });
 
 // Initialize Lambda client
@@ -20,7 +22,7 @@ export const startNovaSonicSession = authActionClient
     const sessionRepository = new SessionRepository();
 
     // Create new session in DynamoDB
-    const session = await sessionRepository.createSession(userId);
+    const session = await sessionRepository.createSession(userId, parsedInput.mcpConfig);
 
     // Prepare payload for Nova Sonic Lambda
     const payload = {
@@ -28,6 +30,7 @@ export const startNovaSonicSession = authActionClient
       userId: session.userId,
       systemPrompt: parsedInput.systemPrompt,
       voiceId: parsedInput.voiceId,
+      mcpConfig: parsedInput.mcpConfig,
     };
 
     try {

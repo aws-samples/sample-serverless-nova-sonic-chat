@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { startNovaSonicSession } from '@/app/(root)/actions';
 import { useAction } from 'next-safe-action/hooks';
 import { AudioEventSequencer } from '@/common/events';
+import { McpConfig } from '@/agent/tools/mcp/schema';
 
 const NAMESPACE = process.env.NEXT_PUBLIC_EVENT_BUS_NAMESPACE!;
 const MIN_AUDIO_CHUNKS_PER_BATCH = 10;
@@ -283,14 +284,14 @@ export const useSpeechToSpeech = (userId: string, onSessionComplete: (endReason:
     }
   };
 
-  const startSession = async (voiceId: string, systemPrompt: string) => {
+  const startSession = async (voiceId: string, systemPrompt: string, mcpConfig: McpConfig) => {
     if (isActive || isLoading) {
       return;
     }
     clear();
     setIsLoading(true);
     systemPromptRef.current = systemPrompt;
-    executeSpeechToSpeech({ systemPrompt, voiceId });
+    executeSpeechToSpeech({ systemPrompt, voiceId, mcpConfig });
   };
 
   const toggleMute = useCallback(() => {

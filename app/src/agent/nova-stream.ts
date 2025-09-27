@@ -4,9 +4,11 @@ import {
   InvokeModelWithBidirectionalStreamCommandOutput,
   InvokeModelWithBidirectionalStreamInput,
 } from '@aws-sdk/client-bedrock-runtime';
+import { Tool } from '@aws-sdk/client-bedrock-runtime';
 import { randomUUID } from 'crypto';
 import { NodeHttp2Handler } from '@smithy/node-http-handler';
 import { ToolDefinition } from './tools/common';
+import { tryExecuteMcpTool } from '@/agent/tools/mcp';
 
 const MAX_AUDIO_INPUT_QUEUE_SIZE = 200;
 const modelId = 'amazon.nova-sonic-v1:0';
@@ -44,9 +46,11 @@ export class NovaStream {
   private _stream: InvokeModelWithBidirectionalStreamCommandOutput | undefined = undefined;
 
   constructor(
+    private sessionId: string,
     private voiceId: string,
     private systemPrompt: string,
-    private tools: ToolDefinition<any>[]
+    private tools: ToolDefinition<any>[],
+    private mcpTools: Tool[]
   ) {
     this.eventQueue = [];
     this.audioInputQueue = [];
@@ -284,9 +288,12 @@ export class NovaStream {
                   mediaType: 'application/json',
                 },
                 toolConfiguration: {
-                  tools: this.tools.map((tool) => ({
-                    toolSpec: tool.toolSpec(),
-                  })),
+                  tools: [
+                    ...this.tools.map((tool) => ({
+                      toolSpec: tool.toolSpec(),
+                    })),
+                    ...this.mcpTools.map((tool) => ({ toolSpec: tool.toolSpec! })),
+                  ],
                 },
               }
             : {}),
@@ -497,12 +504,33 @@ export class NovaStream {
       return `Input must be valid JSON: ${input}`;
     }
 
+    const mcpResult = await tryExecuteMcpTool(this.sessionId, toolName, JSON.parse(input));
+    if (mcpResult.found) {
+      console.log(`Used MCP tool: ${toolName} ${input}`);
+      if (typeof mcpResult.content == 'string') {
+        return JSON.stringify({ result: mcpResult.content });
+      } else if (Array.isArray(mcpResult.content)) {
+        return JSON.stringify({
+          result: mcpResult.content
+            .filter((c) => c.type == 'text')
+            .map((c) => c.text)
+            .join('\n\n'),
+        });
+      }
+      throw new Error('Unexpected MCP result');
+    }
+
     const tool = this.tools.find((tool) => tool.name == toolName);
     if (!tool) return `Cannot find tool ${toolName}`;
     const { data: parsedInput, error } = tool.schema.safeParse(JSON.parse(input));
     if (error) `Input validation error: ${JSON.stringify(error)}`;
     try {
-      return await tool.handler(parsedInput, {});
+      const result = await tool.handler(parsedInput, {});
+      if (typeof result == 'string') {
+        return JSON.stringify({ result });
+      } else {
+        return JSON.stringify(result);
+      }
     } catch (e) {
       return `Error executing tool ${toolName}: ${e}`;
     }

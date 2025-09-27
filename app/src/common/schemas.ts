@@ -68,3 +68,24 @@ export const SpeechToSpeechEventSchema = z.discriminatedUnion('event', [
 export type SpeechToSpeechEvent = z.infer<typeof SpeechToSpeechEventSchema>;
 export type SpeechToSpeechEventType = SpeechToSpeechEvent['event'];
 export type DispatchEventParams = Omit<SpeechToSpeechEvent, 'direction'>;
+
+export const mcpConfigSchema = z.object({
+  mcpServers: z.record(
+    z.string(),
+    z.union([
+      z.object({
+        command: z.string(),
+        args: z.array(z.string()),
+        env: z.record(z.string(), z.string()).optional(),
+        enabled: z.boolean().optional(),
+      }),
+      z.object({
+        url: z.string(),
+        enabled: z.boolean().optional(),
+      }),
+    ])
+  ),
+});
+
+export type McpConfig = z.infer<typeof mcpConfigSchema>;
+export const EmptyMcpConfig: McpConfig = { mcpServers: {} };

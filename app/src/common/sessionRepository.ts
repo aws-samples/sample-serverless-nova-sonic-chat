@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { SessionEntity } from './dynamodb';
+import { McpConfig } from '@/common/schemas';
 
 export type Session = {
   userId: string;
@@ -15,7 +16,7 @@ export class SessionRepository {
    * @param title Session title (optional)
    * @returns Created session
    */
-  async createSession(userId: string): Promise<Session> {
+  async createSession(userId: string, mcpConfig: McpConfig): Promise<Session> {
     const sessionId = uuidv4();
     const timestamp = Date.now();
 
@@ -23,6 +24,7 @@ export class SessionRepository {
       userId,
       sessionId,
       createdAt: timestamp,
+      mcpConfig: JSON.stringify(mcpConfig, undefined, 2),
     }).go();
 
     return {

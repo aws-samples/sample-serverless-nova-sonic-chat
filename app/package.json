@@ -18,6 +18,8 @@
     "@aws-sdk/client-sts": "^3.758.0",
     "@aws-sdk/credential-providers": "^3.750.0",
     "@aws-sdk/lib-dynamodb": "^3.744.0",
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-scroll-area": "^1.2.9",
     "@radix-ui/react-select": "^2.2.5",

@@ -24,7 +24,7 @@ const handler = async (input: z.infer<typeof inputSchema>) => {
     const weatherData = await response.json();
     console.log('weatherData:', weatherData);
 
-    return JSON.stringify(weatherData, undefined, 1);
+    return weatherData;
   } catch (error) {
     const res = `Error fetching weather data: ${error instanceof Error ? error.message : String(error)} `;
     console.error(res, error);
