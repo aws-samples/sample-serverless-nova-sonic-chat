@@ -3,14 +3,13 @@ import { events, EventsChannel } from 'aws-amplify/data';
 import { AudioPlayer } from './lib/AudioPlayer';
 import { AudioRecorder } from './lib/AudioRecorder';
 import useChatHistory from './useChatHistory';
-import { DispatchEventParams, SpeechToSpeechEventSchema } from '@/common/schemas';
+import { DispatchEventParams, McpConfig, SpeechToSpeechEventSchema } from '@/common/schemas';
 import { Amplify } from 'aws-amplify';
 import { decodeJWT } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 import { startNovaSonicSession } from '@/app/(root)/actions';
 import { useAction } from 'next-safe-action/hooks';
 import { AudioEventSequencer } from '@/common/events';
-import { McpConfig } from '@/agent/tools/mcp/schema';
 
 const NAMESPACE = process.env.NEXT_PUBLIC_EVENT_BUS_NAMESPACE!;
 const MIN_AUDIO_CHUNKS_PER_BATCH = 10;
