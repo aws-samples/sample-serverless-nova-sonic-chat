@@ -110,6 +110,9 @@ exports[`Snapshot test: MainStack 1`] = `
             },
           },
         },
+        "EphemeralStorage": {
+          "Size": 512,
+        },
         "ImageConfig": {
           "Command": [
             "agent.handler",
