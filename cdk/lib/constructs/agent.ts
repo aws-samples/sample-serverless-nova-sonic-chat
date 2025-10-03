@@ -1,4 +1,4 @@
-import { CfnOutput, Duration } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Size } from 'aws-cdk-lib';
 import { ITableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { DockerImageFunction, DockerImageCode, Architecture, IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -31,6 +31,7 @@ export class Agent extends Construct {
         platform: Platform.LINUX_ARM64,
       }),
       memorySize: 256,
+      ephemeralStorageSize: Size.mebibytes(512),
       timeout: Duration.minutes(15),
       architecture: Architecture.ARM_64,
       environment: {

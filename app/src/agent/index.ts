@@ -6,7 +6,7 @@ import { SessionRepository } from '@/common/sessionRepository';
 import { dispatchEvent, processResponseStream, initializeSubscription } from './events';
 import { voiceConfigurations } from './voices';
 import { getWeatherTool } from './tools/weather';
-import { getMcpToolSpecs } from '@/agent/tools/mcp';
+import { closeMcpServers, getMcpToolSpecs } from '@/agent/tools/mcp';
 import { McpConfig } from '@/common/schemas';
 
 export const main = async (
@@ -79,6 +79,7 @@ ${voiceConfig.additionalPrompt}
         console.log('Close the channel');
         channel.close();
       }
+      await closeMcpServers();
 
       console.log('Session ended.');
     } catch (e) {

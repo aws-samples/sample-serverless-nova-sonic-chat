@@ -9,6 +9,7 @@ This is a sample implementation for deploying a Nova Sonic application using ser
 - Implementation of serverless real-time communication between server and client using AppSync Events
 - Reference to past conversation history
 - ToolUse implementation
+- MCP (Model Context Protocol) support - Connect to various external services and tools via MCP servers
 - Automatic resume for conversations exceeding 8 minutes (current Nova Sonic limit)
 - Chat UI implementation using Next.js + shadcn
 
@@ -127,6 +128,35 @@ Press the `Stop Voice Chat` button to end the conversation. The conversation wil
 ### Viewing Conversation Logs
 
 Click on history in the sidebar to view conversation history. Since long-term memory is included in the system prompt at that time, you can also see how memories change over time.
+
+### MCP Support
+
+This agent now supports MCP (Model Context Protocol), enabling integration with various external services and tools. This allows the agent to:
+
+- Access databases, APIs, and other external data sources
+- Extend capabilities through community-developed MCP servers
+
+**Important Notes:**
+- Supports MCP servers that can be executed via `uvx` or `npx`
+- Tools are executed synchronously, so long-running tools may not be suitable
+- **Resource Requirements**: MCP functionality may require additional memory and storage. If you encounter resource limitations, you can adjust the Lambda function's memory size (default: 256MB) and ephemeral storage size (default: 512MB) in `cdk/lib/constructs/agent.ts`
+
+An example mcp config is below:
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "DeepWiki": {
+      "url": "https://mcp.deepwiki.com/sse",
+      "enabled": false
+    }
+  }
+}
+```
 
 ### Other Notes
 

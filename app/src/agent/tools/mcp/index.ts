@@ -55,4 +55,5 @@ export const closeMcpServers = async () => {
       })
     )
   );
+  clientsMap = {};
 };
