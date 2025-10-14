@@ -2,18 +2,17 @@
 
 import { z } from 'zod';
 import { SessionRepository } from '@/common/sessionRepository';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { BedrockAgentCoreClient, InvokeAgentRuntimeCommand } from '@aws-sdk/client-bedrock-agentcore';
 import { authActionClient } from '@/lib/safe-action';
 import { mcpConfigSchema } from '@/common/schemas';
+
+const agentCore = new BedrockAgentCoreClient({});
 
 const startNovaSonicSessionSchema = z.object({
   systemPrompt: z.string(),
   voiceId: z.string(),
   mcpConfig: mcpConfigSchema,
 });
-
-// Initialize Lambda client
-const lambdaClient = new LambdaClient({});
 
 export const startNovaSonicSession = authActionClient
   .inputSchema(startNovaSonicSessionSchema)
@@ -34,14 +33,14 @@ export const startNovaSonicSession = authActionClient
     };
 
     try {
-      // Invoke Nova Sonic processing Lambda
-      const command = new InvokeCommand({
-        FunctionName: process.env.NOVA_SONIC_LAMBDA_FUNCTION_NAME!,
-        InvocationType: 'Event', // Async invocation
-        Payload: JSON.stringify(payload),
-      });
-
-      await lambdaClient.send(command);
+      const res = await agentCore.send(
+        new InvokeAgentRuntimeCommand({
+          agentRuntimeArn: process.env.AGENT_CORE_RUNTIME_ARN,
+          runtimeSessionId: session.sessionId,
+          payload: JSON.stringify(payload),
+          contentType: 'application/json',
+        })
+      );
 
       return {
         success: true,

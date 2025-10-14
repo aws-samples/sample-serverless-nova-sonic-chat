@@ -14,6 +14,7 @@ import { readFileSync } from 'fs';
 import { ContainerImageBuild } from 'deploy-time-build';
 import { EventBus } from './event-bus';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { Agent } from './agent';
 
 export interface ServiceProps {
   table: ITableV2;
@@ -21,7 +22,7 @@ export interface ServiceProps {
   hostedZone?: IHostedZone;
   subDomain?: string;
   eventBus: EventBus;
-  agentHandler: IFunction;
+  agent: Agent;
 }
 
 export class Service extends Construct {
@@ -29,7 +30,7 @@ export class Service extends Construct {
 
   constructor(scope: Construct, id: string, props: ServiceProps) {
     super(scope, id);
-    const { table, subDomain = 'api', auth, eventBus } = props;
+    const { table, subDomain = 'api', auth, eventBus, agent } = props;
 
     // Use ContainerImageBuild to inject deploy-time values in the build environment
     const image = new ContainerImageBuild(this, 'Build', {
@@ -64,14 +65,14 @@ export class Service extends Construct {
         USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
         TABLE_NAME: table.tableName,
         // AMPLIFY_APP_ORIGIN: '', // will be populated below
-        NOVA_SONIC_LAMBDA_FUNCTION_NAME: props.agentHandler.functionName,
+        AGENT_CORE_RUNTIME_ARN: props.agent.runtimeArn,
       },
       timeout: Duration.seconds(29),
       memorySize: 1769,
       architecture: Architecture.X86_64,
     });
     table.grantReadWriteData(handler);
-    props.agentHandler.grantInvoke(handler);
+    props.agent.grantInvoke(handler);
 
     let domainName: DomainName | undefined;
     let fullDomainName: string | undefined;

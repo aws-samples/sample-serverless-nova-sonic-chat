@@ -47,7 +47,7 @@ export class CdkStack extends cdk.Stack {
       table: database.table,
       auth,
       eventBus,
-      agentHandler: agent.handler,
+      agent,
     });
   }
 }
