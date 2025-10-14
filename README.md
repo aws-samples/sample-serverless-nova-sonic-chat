@@ -10,7 +10,7 @@ This is a sample implementation for deploying a Nova Sonic application using ser
 - Reference to past conversation history
 - ToolUse implementation
 - MCP (Model Context Protocol) support - Connect to various external services and tools via MCP servers
-- Automatic resume for conversations exceeding 8 minutes (current Nova Sonic limit)
+- A conversation session can continue up to 8 hours (yes, not 8 minutes)
 - Chat UI implementation using Next.js + shadcn
 
 ## Deployment Instructions
