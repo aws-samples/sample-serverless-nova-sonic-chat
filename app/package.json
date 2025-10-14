@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.6.6",
+    "@aws-sdk/client-bedrock-agentcore": "^3.909.0",
     "@aws-sdk/client-bedrock-runtime": "^3.744.0",
     "@aws-sdk/client-dynamodb": "^3.744.0",
     "@aws-sdk/client-lambda": "^3.848.0",
@@ -29,6 +30,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "electrodb": "^2.15.1",
+    "express": "^5.1.0",
     "lucide-react": "^0.525.0",
     "next": "15.5.2",
     "next-safe-action": "^8.0.8",
@@ -45,6 +47,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/express": "^5.0.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

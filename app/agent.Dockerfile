@@ -3,7 +3,7 @@ WORKDIR /build
 COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY ./ ./
-RUN npx esbuild src/lambda/*.ts --bundle --outdir=dist --platform=node --charset=utf8
+RUN npx esbuild src/agent/agent-core.ts --bundle --outdir=dist --platform=node --charset=utf8
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -22,4 +22,5 @@ COPY --from=builder /build/dist/. ./
 ENV NPM_CONFIG_USERCONFIG=/tmp/.npmrc
 ENV NPM_CONFIG_CACHE=/tmp/.npm
 
-CMD ["agent.handler"]
+ENTRYPOINT [ "node" ]
+CMD ["agent-core.js"]

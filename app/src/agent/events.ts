@@ -230,10 +230,6 @@ export const processResponseStream = async (
               if (existingContent.role == 'assistant') {
                 // Event when Nova finishes speaking - end the stream here
                 if (jsonResponse.event?.contentEnd?.stopReason == 'END_TURN') {
-                  // Each conversation session is limited to 10 minutes
-                  if (Date.now() - invokedAt > 1000 * 60 * 10) {
-                    return { state: 'success' };
-                  }
                   // Nova Sonic's single stream is limited to 8 minutes
                   if (Date.now() - startedAt > 1000 * willResumeIn) {
                     return { state: 'resume' };

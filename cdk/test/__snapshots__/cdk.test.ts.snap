@@ -4,9 +4,12 @@ exports[`Snapshot test: MainStack 1`] = `
 {
   "Description": "Serverless Nova Sonic Chat App (uksb-r1iyuqfyvk)",
   "Outputs": {
-    "AgentHandlerFunctionName87E3B26A": {
+    "AgentAgentCoreRuntimeArn43CC4D6A": {
       "Value": {
-        "Ref": "AgentHandlerF75982B4",
+        "Fn::GetAtt": [
+          "AgentRuntime291C25AF",
+          "AgentRuntimeArn",
+        ],
       },
     },
     "AuthUserPoolClientId8216BF9A": {
@@ -74,82 +77,7 @@ exports[`Snapshot test: MainStack 1`] = `
     },
   },
   "Resources": {
-    "AgentHandlerF75982B4": {
-      "DependsOn": [
-        "AgentHandlerServiceRoleDefaultPolicyFF04AB8B",
-        "AgentHandlerServiceRole237147EE",
-      ],
-      "Properties": {
-        "Architectures": [
-          "arm64",
-        ],
-        "Code": {
-          "ImageUri": {
-            "Fn::Sub": "REDACTED",
-          },
-        },
-        "Environment": {
-          "Variables": {
-            "EVENT_API_ENDPOINT": {
-              "Fn::Join": [
-                "",
-                [
-                  "https://",
-                  {
-                    "Fn::GetAtt": [
-                      "EventBusApi6E8C7C94",
-                      "Dns.Http",
-                    ],
-                  },
-                ],
-              ],
-            },
-            "EVENT_BUS_NAMESPACE": "event-bus",
-            "TABLE_NAME": {
-              "Ref": "DatabaseHistoryB38F26A4",
-            },
-          },
-        },
-        "EphemeralStorage": {
-          "Size": 512,
-        },
-        "ImageConfig": {
-          "Command": [
-            "agent.handler",
-          ],
-        },
-        "MemorySize": 512,
-        "PackageType": "Image",
-        "Role": {
-          "Fn::GetAtt": [
-            "AgentHandlerServiceRole237147EE",
-            "Arn",
-          ],
-        },
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "AgentHandlerLogGroupA756F902": {
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "LogGroupName": {
-          "Fn::Join": [
-            "",
-            [
-              "/aws/lambda/",
-              {
-                "Ref": "AgentHandlerF75982B4",
-              },
-            ],
-          ],
-        },
-        "RetentionInDays": 731,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "AgentHandlerServiceRole237147EE": {
+    "AgentRole9D587F56": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -157,33 +85,101 @@ exports[`Snapshot test: MainStack 1`] = `
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": {
-                "Service": "lambda.amazonaws.com",
+                "Service": "bedrock-agentcore.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "AgentHandlerServiceRoleDefaultPolicyFF04AB8B": {
+    "AgentRoleDefaultPolicyA34CCA36": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:GetDownloadUrlForLayer",
+              ],
+              "Effect": "Allow",
+              "Resource": "REDACTED",
+            },
+            {
+              "Action": [
+                "ecr:GetAuthorizationToken",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
+                "xray:PutTelemetryRecords",
+                "xray:PutTraceSegments",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:DescribeLogStreams",
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/bedrock-agentcore/runtimes/*",
+            },
+            {
+              "Action": "logs:DescribeLogGroups",
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-east-1:123456789012:log-group:*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*",
+            },
+            {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "ECRTokenAccess",
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Condition": {
+                "StringEquals": {
+                  "cloudwatch:namespace": "bedrock-agentcore",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "bedrock-agentcore:GetWorkloadAccessToken",
+                "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
+                "bedrock-agentcore:GetWorkloadAccessTokenForUserId",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:bedrock-agentcore:us-east-1:123456789012:workload-identity-directory/default",
+                "arn:aws:bedrock-agentcore:us-east-1:123456789012:workload-identity-directory/default/workload-identity/agentName-*",
+              ],
+              "Sid": "GetAgentAccessToken",
+            },
+            {
+              "Action": [
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:bedrock:*::foundation-model/*",
+                "arn:aws:bedrock:us-east-1:123456789012:*",
+              ],
+              "Sid": "BedrockModelInvocation",
+            },
             {
               "Action": [
                 "dynamodb:BatchGetItem",
@@ -263,22 +259,64 @@ exports[`Snapshot test: MainStack 1`] = `
                 ],
               },
             },
-            {
-              "Action": "bedrock:InvokeModel",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "AgentHandlerServiceRoleDefaultPolicyFF04AB8B",
+        "PolicyName": "AgentRoleDefaultPolicyA34CCA36",
         "Roles": [
           {
-            "Ref": "AgentHandlerServiceRole237147EE",
+            "Ref": "AgentRole9D587F56",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "AgentRuntime291C25AF": {
+      "DependsOn": [
+        "AgentRoleDefaultPolicyA34CCA36",
+        "AgentRole9D587F56",
+      ],
+      "Properties": {
+        "AgentRuntimeArtifact": {
+          "ContainerConfiguration": {
+            "ContainerUri": {
+              "Fn::Sub": "REDACTED",
+            },
+          },
+        },
+        "AgentRuntimeName": "TestMainStackAgent6DFB6D2A",
+        "EnvironmentVariables": {
+          "EVENT_API_ENDPOINT": {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Fn::GetAtt": [
+                    "EventBusApi6E8C7C94",
+                    "Dns.Http",
+                  ],
+                },
+              ],
+            ],
+          },
+          "EVENT_BUS_NAMESPACE": "event-bus",
+          "TABLE_NAME": {
+            "Ref": "DatabaseHistoryB38F26A4",
+          },
+        },
+        "NetworkConfiguration": {
+          "NetworkMode": "PUBLIC",
+        },
+        "ProtocolConfiguration": "HTTP",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "AgentRole9D587F56",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::BedrockAgentCore::Runtime",
     },
     "AuthBranding34BB87FD": {
       "Properties": {
@@ -1461,6 +1499,12 @@ exports.handler = async function (event, context) {
         },
         "Environment": {
           "Variables": {
+            "AGENT_CORE_RUNTIME_ARN": {
+              "Fn::GetAtt": [
+                "AgentRuntime291C25AF",
+                "AgentRuntimeArn",
+              ],
+            },
             "AMPLIFY_APP_ORIGIN": {
               "Fn::GetAtt": [
                 "ServiceAD644FD0",
@@ -1480,9 +1524,6 @@ exports.handler = async function (event, context) {
                   ".auth.us-east-1.amazoncognito.com",
                 ],
               ],
-            },
-            "NOVA_SONIC_LAMBDA_FUNCTION_NAME": {
-              "Ref": "AgentHandlerF75982B4",
             },
             "TABLE_NAME": {
               "Ref": "DatabaseHistoryB38F26A4",
@@ -1601,13 +1642,13 @@ exports.handler = async function (event, context) {
               ],
             },
             {
-              "Action": "lambda:InvokeFunction",
+              "Action": "bedrock-agentcore:InvokeAgentRuntime",
               "Effect": "Allow",
               "Resource": [
                 {
                   "Fn::GetAtt": [
-                    "AgentHandlerF75982B4",
-                    "Arn",
+                    "AgentRuntime291C25AF",
+                    "AgentRuntimeArn",
                   ],
                 },
                 {
@@ -1616,11 +1657,11 @@ exports.handler = async function (event, context) {
                     [
                       {
                         "Fn::GetAtt": [
-                          "AgentHandlerF75982B4",
-                          "Arn",
+                          "AgentRuntime291C25AF",
+                          "AgentRuntimeArn",
                         ],
                       },
-                      ":*",
+                      "/runtime-endpoint/DEFAULT",
                     ],
                   ],
                 },
