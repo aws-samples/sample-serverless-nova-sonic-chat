@@ -150,7 +150,7 @@ export const processResponseStream = async (
   const messageRepository = new MessageRepository();
 
   const startedAt = Date.now();
-  const willResumeIn = Math.floor(Math.random() * 330 + 120); // 120 to 450 seconds
+  const willResumeIn = Math.floor(Math.random() * 90 + 360); // 360 to 450 seconds, intentionally chosen at random to make it less noticeable
 
   const contents: { [key: string]: { role: string; content: string; isFinal: boolean } } = {};
   const toolUses: { [key: string]: { toolUseId: string; content: string; toolName: string } } = {};
