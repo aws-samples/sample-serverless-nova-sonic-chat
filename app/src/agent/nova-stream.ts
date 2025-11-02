@@ -523,7 +523,7 @@ export class NovaStream {
     const tool = this.tools.find((tool) => tool.name == toolName);
     if (!tool) return `Cannot find tool ${toolName}`;
     const { data: parsedInput, error } = tool.schema.safeParse(JSON.parse(input));
-    if (error) `Input validation error: ${JSON.stringify(error)}`;
+    if (error) return `Input validation error: ${JSON.stringify(error)}`;
     try {
       const result = await tool.handler(parsedInput, {});
       if (typeof result == 'string') {
