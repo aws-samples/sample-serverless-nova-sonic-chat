@@ -15,7 +15,7 @@ const NAMESPACE = process.env.NEXT_PUBLIC_EVENT_BUS_NAMESPACE!;
 const MIN_AUDIO_CHUNKS_PER_BATCH = 10;
 const MAX_AUDIO_CHUNKS_PER_BATCH = 20;
 
-let tokenCache: { updatedAt: number; token: string } = { updatedAt: 0, token: '' };
+const tokenCache: { updatedAt: number; token: string } = { updatedAt: 0, token: '' };
 let audioInputSequence = 0;
 
 Amplify.configure(

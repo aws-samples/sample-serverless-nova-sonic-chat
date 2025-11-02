@@ -38,6 +38,7 @@ jobs:
       - run: |
           npm ci
           npm run format:check
+          npm run lint
         working-directory: ./app
         name: Install dependencies and run static analysis
       - run: |
