@@ -37,6 +37,9 @@ export const getMcpToolSpecs = async (workerId: string, config: McpConfig): Prom
 };
 
 export const tryExecuteMcpTool = async (workerId: string, toolName: string, input: any) => {
+  if (!clientsMap[workerId]) {
+    return { found: false };
+  }
   const client = clientsMap[workerId].find(({ client }) =>
     client.tools.find((tool) => tool.toolSpec?.name == toolName)
   );
