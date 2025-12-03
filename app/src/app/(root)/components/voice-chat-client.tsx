@@ -15,6 +15,7 @@ import ConversationList from '@/components/conversation-list';
 import Messages from '@/components/messages';
 import TimerDisplay from './timer-display';
 import { EmptyMcpConfig, mcpConfigSchema } from '@/common/schemas';
+import { voices } from '@/lib/voices';
 
 interface Conversation {
   id: string;
@@ -311,17 +312,11 @@ export default function VoiceChatClient({ initialConversations, userId }: VoiceC
                     <SelectValue placeholder="Select voice" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tiffany">Tiffany (US English, Female)</SelectItem>
-                    <SelectItem value="matthew">Matthew (US English, Male)</SelectItem>
-                    <SelectItem value="amy">Amy (GB English, Female)</SelectItem>
-                    <SelectItem value="ambre">Ambre (French, Female)</SelectItem>
-                    <SelectItem value="florian">Florian (French, Male)</SelectItem>
-                    <SelectItem value="beatrice">Beatrice (Italian, Female)</SelectItem>
-                    <SelectItem value="lorenzo">Lorenzo (Italian, Male)</SelectItem>
-                    <SelectItem value="greta">Greta (German, Female)</SelectItem>
-                    <SelectItem value="lennart">Lennart (German, Male)</SelectItem>
-                    <SelectItem value="lupe">Lupe (Spanish, Female)</SelectItem>
-                    <SelectItem value="carlos">Carlos (Spanish, Male)</SelectItem>
+                    {voices.map((voice) => (
+                      <SelectItem key={voice.id} value={voice.id}>
+                        {voice.label} ({voice.language}, {voice.gender})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -4,7 +4,7 @@ import { NovaStream } from './nova-stream';
 import './amplify';
 import { SessionRepository } from '@/common/sessionRepository';
 import { dispatchEvent, processResponseStream, initializeSubscription } from './events';
-import { voiceConfigurations } from './voices';
+import { voiceConfigurations } from '@/lib/voices';
 import { getWeatherTool } from './tools/weather';
 import { closeMcpServers, getMcpToolSpecs } from '@/agent/tools/mcp';
 import { McpConfig } from '@/common/schemas';
