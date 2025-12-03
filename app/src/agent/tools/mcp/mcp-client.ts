@@ -14,14 +14,10 @@ export class MCPClient {
   private _tools: Tool[] = [];
 
   private constructor() {
-    this.mcp = new Client(
-      { name: 'mcp-client-cli', version: '1.0.0' },
-      {
-        capabilities: {
-          tools: {},
-        },
-      }
-    );
+    this.mcp = new Client({
+      name: 'nova-sonic-agent',
+      version: '1.0.0',
+    });
   }
 
   static async fromCommand(command: string, args: string[], env?: Record<string, string>) {
