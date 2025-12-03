@@ -11,7 +11,7 @@ import { ToolDefinition } from './tools/common';
 import { tryExecuteMcpTool } from '@/agent/tools/mcp';
 
 const MAX_AUDIO_INPUT_QUEUE_SIZE = 200;
-const modelId = 'amazon.nova-sonic-v1:0';
+const modelId = 'amazon.nova-2-sonic-v1:0';
 const bedrock = new BedrockRuntimeClient({
   region: process.env.BEDROCK_REGION || 'us-east-1',
   requestHandler: new NodeHttp2Handler({
